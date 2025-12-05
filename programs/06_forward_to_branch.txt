@@ -1,0 +1,9 @@
+# Forward-to-branch demo: branch compares value produced immediately before it
+# Expected: branch NOT taken, $4 ends as 22
+
+addi $1, $0, 5
+addi $2, $0, 6
+sub  $3, $2, $1     # $3=1
+beq  $3, $0, 6      # not taken
+addi $4, $0, 11
+addi $4, $0, 22
