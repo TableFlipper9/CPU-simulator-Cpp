@@ -5,6 +5,7 @@
 #include "RegisterFile.hpp"
 #include "Memory.hpp"
 #include "Instructions.hpp"
+#include "HazardUnit.hpp"
 
 class CPU {
 public:
@@ -16,6 +17,12 @@ public:
 
     void dumpRegisters() const;
     void dumpPipeline() const;
+
+    // ---- Testing / inspection helpers ----
+    // These are intentionally lightweight and keep the core design intact.
+    int getReg(int idx) const;
+    int getMemWord(int addr) const;
+    void setMemWord(int addr, int value);
 
     int pc = 0;
     int clock = 0;
@@ -32,4 +39,6 @@ private:
     EXStage exStage;
     MEMStage memStage;
     WBStage wbStage;
+
+    HazardUnit hazardUnit;
 };

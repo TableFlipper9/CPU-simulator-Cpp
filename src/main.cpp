@@ -18,7 +18,7 @@ int main() {
     std::vector<Instruction> program = {
         {Opcode::ADD, 2, 3, 1, 0, 0, "add $1, $2, $3"},
         {Opcode::ADDI, 1, 4, 0, 10, 0, "addi $4, $1, 10"},
-        {Opcode::SW, 4, 0, 0, 0, 0, "sw $4, 0($0)"},
+        {Opcode::SW, 0, 4, 0, 0, 0, "sw $4, 0($0)"},
         {Opcode::LW, 0, 5, 0, 0, 0, "lw $5, 0($0)"},
         {Opcode::SUB, 5, 4, 6, 0, 0, "sub $6, $5, $4"},
     };

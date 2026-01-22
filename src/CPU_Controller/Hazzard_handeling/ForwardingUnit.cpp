@@ -7,7 +7,9 @@ ForwardingDecision ForwardingUnit::resolve(
 ) {
     ForwardingDecision fwd;
 
-    if (ex_mem.valid && ex_mem.ctrl.regWrite && ex_mem.ctrl.destReg != 0) {
+    // EX/MEM forwarding can only use the ALU result.
+    // For loads, the value isn't available until MEM, so do *not* forward from EX/MEM.
+    if (ex_mem.valid && ex_mem.ctrl.regWrite && !ex_mem.ctrl.memRead && ex_mem.ctrl.destReg != 0) {
         if (ex_mem.ctrl.destReg == id_ex.rs)
             fwd.A = ForwardSel::FROM_EX_MEM;
         if (ex_mem.ctrl.destReg == id_ex.rt)

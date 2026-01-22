@@ -17,7 +17,8 @@ public:
 
 class IDStage {
 public:
-    void evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool& stall);
+    // When stalled, ID should NOT consume IF/ID; instead it inserts a bubble into ID/EX.
+    void evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool stall);
 };
 
 class EXStage {

@@ -24,15 +24,22 @@ void CPU::loadProgram(const std::vector<Instruction>& program) {
 
 void CPU::tick() {
     int pc_next = pc;
-    bool stall = false;
+
+    // Detect hazards based on the *current* pipeline state.
+    const HazardResult hz = hazardUnit.detect(pipe.if_id, pipe.id_ex);
+    const bool stall = hz.stall;
 
     pipe.clearNext();
-    pc_next = pc;
 
+    // IF/ID are the only stages that stall on a load-use hazard.
     ifStage.evaluate(pipe, instrMem, pc, pc_next, stall);
     idStage.evaluate(pipe, regs, stall);
-    exStage.evaluate(pipe, pc_next);
+
+    // Model same-cycle forwarding of load data from MEM->EX by evaluating MEM
+    // before EX. All stages still read the *current* pipeline registers and
+    // write only to *_next.
     memStage.evaluate(pipe, mem);
+    exStage.evaluate(pipe, pc_next);
     wbStage.evaluate(pipe, regs);
 
     pipe.if_id = pipe.if_id_next;
@@ -82,4 +89,18 @@ void CPU::dumpPipeline() const {
     dumpEX();
     dumpMEM();
     std::cout << std::flush;
+}
+
+int CPU::getReg(int idx) const {
+    return regs.read(idx);
+}
+
+int CPU::getMemWord(int addr) const {
+    return mem.read(addr);
+}
+
+void CPU::setMemWord(int addr, int value) {
+    // For tests/initialization we want an immediate, deterministic effect.
+    mem.writeNext(addr, value);
+    mem.commit();
 }

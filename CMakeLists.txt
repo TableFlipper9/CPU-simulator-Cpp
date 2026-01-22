@@ -4,33 +4,53 @@ project(SCS_CPU_Simulator)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SFML_ROOT "C:/Users/Mihai/Documents/UTCN/SFML-3.0.2")
-
-find_package(SFML 3 REQUIRED COMPONENTS System Window Graphics)
+option(BUILD_GUI_APP "Build SFML/ImGui GUI executable" ON)
+option(BUILD_TESTS "Build CPU core tests" ON)
 
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")
-add_subdirectory(external/imgui-sfml)
+if (BUILD_GUI_APP)
+    # SFML / ImGui are only needed for the GUI app.
+    find_package(SFML 3 REQUIRED COMPONENTS System Window Graphics)
+    add_subdirectory(external/imgui-sfml)
+endif()
 
-file(GLOB_RECURSE SOURCES
-    src/*.cpp
+file(GLOB_RECURSE CORE_SOURCES
     src/CPU/*.cpp
-    src/CPU/CPU_Controller/*.cpp
-    src/CPU/CPU_Controller/Hazzard_handeling/*.cpp
+    src/CPU_Controller/*.cpp
+    src/CPU_Controller/Hazzard_handeling/*.cpp
 )
 
-add_executable(SCS_CPU_Simulator ${SOURCES})
-
-target_include_directories(SCS_CPU_Simulator PRIVATE
+add_library(cpu_core ${CORE_SOURCES})
+target_include_directories(cpu_core PUBLIC
     includes
     src
     src/CPU_Controller
-    src/CPU/CPU_Controller/Hazzard_handeling
-    ${IMGUI_DIR}
+    src/CPU_Controller/Hazzard_handeling
 )
 
-target_link_libraries(SCS_CPU_Simulator PRIVATE
-    SFML::System
-    SFML::Window
-    SFML::Graphics
-    ImGui-SFML::ImGui-SFML
-)
+if (BUILD_GUI_APP)
+    file(GLOB_RECURSE GUI_SOURCES
+        src/GUI/*.cpp
+    )
+
+    add_executable(SCS_CPU_Simulator src/main.cpp ${GUI_SOURCES})
+    target_link_libraries(SCS_CPU_Simulator PRIVATE cpu_core)
+
+    target_include_directories(SCS_CPU_Simulator PRIVATE
+        ${IMGUI_DIR}
+    )
+
+    target_link_libraries(SCS_CPU_Simulator PRIVATE
+        SFML::System
+        SFML::Window
+        SFML::Graphics
+        ImGui-SFML::ImGui-SFML
+    )
+endif()
+
+if (BUILD_TESTS)
+    enable_testing()
+    add_executable(cpu_tests tests/cpu_tests.cpp)
+    target_link_libraries(cpu_tests PRIVATE cpu_core)
+    add_test(NAME cpu_tests COMMAND cpu_tests)
+endif()

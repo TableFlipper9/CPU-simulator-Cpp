@@ -13,6 +13,7 @@ struct ID_EX {
     int val_rs = 0;
     int val_rt = 0;
     int imm = 0;
+    int addr = 0;
     int rs = 0;
     int rt = 0;
 
