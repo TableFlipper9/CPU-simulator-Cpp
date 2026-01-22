@@ -1,0 +1,8 @@
+# Simple program (no labels; branches/jumps use numeric instruction indices)
+addi $2, $0, 20
+addi $3, $0, 5
+add  $1, $2, $3
+addi $4, $1, 15
+sw   $4, 0($0)
+lw   $5, 0($0)
+sub  $6, $5, $4

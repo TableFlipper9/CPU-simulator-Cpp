@@ -18,6 +18,7 @@ file(GLOB_RECURSE CORE_SOURCES
     src/CPU/*.cpp
     src/CPU_Controller/*.cpp
     src/CPU_Controller/Hazzard_handeling/*.cpp
+    src/CPU_Controller/Meta/*.cpp
 )
 
 add_library(cpu_core ${CORE_SOURCES})
