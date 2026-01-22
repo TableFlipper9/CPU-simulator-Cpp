@@ -1,0 +1,16 @@
+# JAL/JR demo (subroutine call/return)
+# jal/j targets are numeric instruction indices
+
+# main
+jal  5
+addi $1, $0, 111
+j    9
+nop
+
+# subroutine at index 5
+addi $2, $0, 222
+jr   $31
+nop
+
+# end
+addi $3, $0, 333

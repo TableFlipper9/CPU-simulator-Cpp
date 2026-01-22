@@ -1,0 +1,11 @@
+# Branch-after-load demo: branch reads a register loaded in the previous instruction.
+# Requires load-use stall + correct flush when taken.
+# Expected:
+#   $1=0, $2=222
+
+sw   $0, 0($0)      # ensure mem[0]=0
+
+lw   $1, 0($0)
+beq  $1, $0, 4      # target is numeric index; loader converts to offset.
+addi $2, $0, 111    # should be flushed if branch taken
+addi $2, $0, 222

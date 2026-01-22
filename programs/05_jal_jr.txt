@@ -1,0 +1,15 @@
+# JAL/JR control hazard demo.
+# Expected:
+#   $ra($31)=1, $1=111, $2=222, $3=333
+# Note: J and JAL targets are instruction indices.
+
+jal 4
+addi $1, $0, 111
+j 7
+nop
+
+addi $2, $0, 222
+jr $31
+nop
+
+addi $3, $0, 333

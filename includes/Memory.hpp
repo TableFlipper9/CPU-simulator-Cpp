@@ -28,6 +28,9 @@ class Memory {
 public:
     Memory(size_t words = 1024);
 
+    // Clear memory to 0 and discard any pending write.
+    void reset();
+
     int read(int addr) const;
     void writeNext(int addr, int value);
     void commit(); 

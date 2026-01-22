@@ -1,0 +1,9 @@
+# Load-use hazard demo: lw followed immediately by consumer (1-cycle stall)
+# Expected:
+#   mem[0]=42, $2=42, $3=84
+
+addi $1, $0, 42
+sw   $1, 0($0)
+
+lw   $2, 0($0)
+add  $3, $2, $2

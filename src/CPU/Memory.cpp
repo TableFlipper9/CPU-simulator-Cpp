@@ -5,6 +5,11 @@ Memory::Memory(size_t words) {
     data.assign(words, 0);
 }
 
+void Memory::reset() {
+    std::fill(data.begin(), data.end(), 0);
+    pendingWrite.reset();
+}
+
 int Memory::read(int addr) const {
     if (addr < 0 || (size_t)addr >= data.size()) return 0;
     return data[addr];

@@ -5,6 +5,12 @@ RegisterFile::RegisterFile() {
     regs[0] = 0;
 }
 
+void RegisterFile::reset() {
+    regs.fill(0);
+    pendingWrite.reset();
+    regs[0] = 0;
+}
+
 int RegisterFile::read(int idx) const {
     if (idx < 0 || idx >= 32) return 0;
     return regs[idx];

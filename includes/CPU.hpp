@@ -13,7 +13,19 @@ public:
 
     void loadProgram(const std::vector<Instruction>& program);
 
+    // Reset architectural state (PC, clock, pipeline, regs, mem) while keeping the
+    // currently loaded program intact.
+    void reset(bool clearMemory = true);
+
     void tick();
+
+    // True when there are no more instructions to fetch and the pipeline is empty.
+    bool isHalted() const;
+
+    const PipelineRegisters& pipeline() const { return pipe; }
+    const std::vector<Instruction>& program() const { return instrMem; }
+    const RegisterFile& regFile() const { return regs; }
+    const Memory& memory() const { return mem; }
 
     void dumpRegisters() const;
     void dumpPipeline() const;

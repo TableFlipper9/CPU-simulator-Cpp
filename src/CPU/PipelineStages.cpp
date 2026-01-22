@@ -44,6 +44,9 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool s
     const Instruction& di = in.rawInstr;
     ID_EX& out = pipe.id_ex_next;
 
+    // Keep the decoded instruction for UI/debugging.
+    out.rawInstr = di;
+
     out.pc = in.pc;
     out.rs = di.rs;
     out.rt = di.rt;
@@ -209,6 +212,8 @@ void EXStage::evaluate(PipelineRegisters& pipe, int& pc_next) {
     }
 
     EX_MEM& out = pipe.ex_mem_next;
+    // Keep instruction for UI/debugging.
+    out.rawInstr = in.rawInstr;
     out.ctrl = in.ctrl;
 
     // === ALU ===
@@ -289,6 +294,8 @@ void MEMStage::evaluate(PipelineRegisters& pipe, Memory& mem) {
     }
 
     MEM_WB& out = pipe.mem_wb_next;
+    // Keep instruction for UI/debugging.
+    out.rawInstr = in.rawInstr;
     out.ctrl = in.ctrl;
     out.alu_result = in.alu_result;
 

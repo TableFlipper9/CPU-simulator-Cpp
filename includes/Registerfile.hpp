@@ -6,6 +6,9 @@ class RegisterFile {
 public:
     RegisterFile();
 
+    // Clear all registers to 0 and discard any pending write.
+    void reset();
+
     int read(int idx) const; 
     void writeNext(int idx, int value); 
     void commit(); 

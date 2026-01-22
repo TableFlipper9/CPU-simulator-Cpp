@@ -1,0 +1,16 @@
+# Branch taken + flush demo
+# Target indices are numeric. For beq/bne we provide a target instruction index.
+# The loader converts it into PC-relative offset automatically.
+
+addi $1, $0, 1
+addi $2, $0, 1
+
+# if $1 == $2 jump to instruction index 6
+beq  $1, $2, 5
+
+# should be flushed
+addi $3, $0, 123
+addi $3, $0, 456
+
+# target
+addi $3, $0, 789

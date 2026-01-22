@@ -1,0 +1,13 @@
+# Branch immediately after load (requires load-use stall)
+# mem[0]=0, load to $1, then beq uses $1 and should take the branch.
+
+sw   $0, 0($0)
+
+lw   $1, 0($0)
+beq  $1, $0, 5
+
+# should be flushed
+addi $2, $0, 111
+
+# target
+addi $2, $0, 222

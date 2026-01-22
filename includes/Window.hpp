@@ -3,15 +3,22 @@
 #include <imgui.h>
 #include <imgui-SFML.h>
 
+#include "CPU.hpp"
+
 class App {
 public:
-    App();
+    explicit App(CPU& cpu);
     void run();
 
 private:
     sf::RenderWindow window;
     sf::Texture pipelineTexture;
-    std::vector<std::string> instructions;
+    CPU& cpu;
+
+    // UI run control
+    bool running = false;
+    float ticksPerSecond = 4.0f;
+
     std::vector<sf::Color> recencyColors = {
         sf::Color::Red,   
         sf::Color::Blue, 

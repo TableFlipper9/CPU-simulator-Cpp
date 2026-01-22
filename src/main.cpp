@@ -27,11 +27,6 @@ static std::vector<Instruction> defaultDemoProgram() {
 }
 
 int main(int argc, char** argv) {
-    // GUI placeholder (your current App::run returns immediately in this project);
-    // we'll wire real stepping/running into the GUI later.
-    App ui;
-    ui.run();
-
     CPU cpu;
 
     std::vector<Instruction> program;
@@ -83,16 +78,12 @@ int main(int argc, char** argv) {
     }
 
     cpu.loadProgram(program);
+    // Start from a clean architectural state for the interactive simulator.
+    cpu.reset(true);
 
-    // Run long enough to retire everything through the pipeline.
-    int steps = static_cast<int>(program.size()) + 8;
-    for (int i = 0; i < steps; i++) {
-        std::cout << "=== Tick " << i << " ===\n";
-        cpu.tick();
-        cpu.dumpPipeline();
-        cpu.dumpRegisters();
-        std::cout << "-------------------------\n";
-    }
+    // GUI is the "system" driver now: it controls stepping/running.
+    App ui(cpu);
+    ui.run();
 
     return 0;
 }

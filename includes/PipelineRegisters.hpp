@@ -9,6 +9,7 @@ struct IF_ID {
 };
 
 struct ID_EX {
+    Instruction rawInstr;
     int pc = 0;
     int val_rs = 0;
     int val_rt = 0;
@@ -23,6 +24,7 @@ struct ID_EX {
 };
 
 struct EX_MEM {
+    Instruction rawInstr;
     int alu_result = 0;
     int val_rt = 0; 
     int branchTarget = 0;
@@ -34,6 +36,7 @@ struct EX_MEM {
 };
 
 struct MEM_WB {
+    Instruction rawInstr;
     int alu_result = 0;
     int mem_data = 0;
 

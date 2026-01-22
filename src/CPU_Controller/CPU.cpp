@@ -11,10 +11,12 @@ CPU::CPU()
 
 void CPU::loadProgram(const std::vector<Instruction>& program) {
     instrMem = program;
+    // Load a program and reset the control flow/pipeline.
+    // NOTE: We intentionally do NOT clear registers/memory here so tests (and later
+    // GUI workflows) can pre-initialize state before loading.
     pc = 0;
     clock = 0;
 
-    // clear pipeline
     pipe.if_id = IF_ID{};
     pipe.id_ex = ID_EX{};
     pipe.ex_mem = EX_MEM{};
@@ -22,7 +24,33 @@ void CPU::loadProgram(const std::vector<Instruction>& program) {
     pipe.clearNext();
 }
 
+void CPU::reset(bool clearMemory) {
+    pc = 0;
+    clock = 0;
+
+    // Clear pipeline
+    pipe.if_id = IF_ID{};
+    pipe.id_ex = ID_EX{};
+    pipe.ex_mem = EX_MEM{};
+    pipe.mem_wb = MEM_WB{};
+    pipe.clearNext();
+
+    // Clear architectural state
+    regs.reset();
+    if (clearMemory) mem.reset();
+}
+
+bool CPU::isHalted() const {
+    const bool pipelineEmpty = !pipe.if_id.valid && !pipe.id_ex.valid && !pipe.ex_mem.valid && !pipe.mem_wb.valid;
+    const bool noMoreFetch = pc < 0 || pc >= static_cast<int>(instrMem.size());
+    return noMoreFetch && pipelineEmpty;
+}
+
 void CPU::tick() {
+    if (isHalted()) {
+        // Nothing left to do.
+        return;
+    }
     int pc_next = pc;
 
     // Detect hazards based on the *current* pipeline state.

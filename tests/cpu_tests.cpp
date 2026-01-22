@@ -170,6 +170,63 @@ static void test_jal_jr_control_hazards() {
     EXPECT_EQ(cpu.getReg(3), 333);  // ran at end
 }
 
+static void test_branch_after_load_use_stall() {
+    std::cout << "[TEST] branch_after_load_use_stall\n";
+    CPU cpu;
+    cpu.setMemWord(0, 0);
+
+    // 0: lw   r1,0(r0)      => r1=0
+    // 1: beq  r1,r0,+1      => taken, should skip pc=2
+    // 2: addi r2,111        => flushed
+    // 3: addi r2,222
+    // This requires a load-use stall because the branch reads r1.
+    std::vector<Instruction> p = {
+        I(Opcode::LW,   0, 1, 0, 0, 0, "lw   $1,0($0)"),
+        I(Opcode::BEQ,  1, 0, 0, 1, 0, "beq  $1,$0,1"),
+        I(Opcode::ADDI, 0, 2, 0, 111, 0, "addi $2,$0,111"),
+        I(Opcode::ADDI, 0, 2, 0, 222, 0, "addi $2,$0,222"),
+    };
+    runProgramAndDrain(cpu, p);
+
+    EXPECT_EQ(cpu.getReg(1), 0);
+    EXPECT_EQ(cpu.getReg(2), 222);
+}
+
+static void test_store_after_load_stall_and_forward() {
+    std::cout << "[TEST] store_after_load_stall_and_forward\n";
+    CPU cpu;
+    cpu.setMemWord(0, 77);
+
+    // 0: lw r1,0(r0)    => r1=77
+    // 1: sw r1,4(r0)    => must store 77 (requires load-use stall)
+    // 2: lw r2,4(r0)    => r2=77
+    std::vector<Instruction> p = {
+        I(Opcode::LW, 0, 1, 0, 0, 0, "lw   $1,0($0)"),
+        I(Opcode::SW, 0, 1, 0, 4, 0, "sw   $1,4($0)"),
+        I(Opcode::LW, 0, 2, 0, 4, 0, "lw   $2,4($0)"),
+    };
+    runProgramAndDrain(cpu, p);
+
+    EXPECT_EQ(cpu.getReg(1), 77);
+    EXPECT_EQ(cpu.getMemWord(4), 77);
+    EXPECT_EQ(cpu.getReg(2), 77);
+}
+
+static void test_zero_register_immutable() {
+    std::cout << "[TEST] zero_register_immutable\n";
+    CPU cpu;
+
+    std::vector<Instruction> p = {
+        I(Opcode::ADDI, 0, 0, 0, 123, 0, "addi $0,$0,123"),
+        I(Opcode::ADDI, 0, 1, 0, 5,   0, "addi $1,$0,5"),
+        I(Opcode::ADD,  1, 0, 0, 0,   0, "add  $0,$1,$0"),
+    };
+    runProgramAndDrain(cpu, p);
+
+    EXPECT_EQ(cpu.getReg(0), 0);
+    EXPECT_EQ(cpu.getReg(1), 5);
+}
+
 } // namespace
 
 int main() {
@@ -179,6 +236,9 @@ int main() {
     test_branch_taken_flush();
     test_branch_not_taken_with_forward_to_branch();
     test_jal_jr_control_hazards();
+    test_branch_after_load_use_stall();
+    test_store_after_load_stall_and_forward();
+    test_zero_register_immutable();
 
     if (g_failures == 0) {
         std::cout << "\nALL TESTS PASSED\n";
