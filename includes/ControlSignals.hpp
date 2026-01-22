@@ -12,6 +12,7 @@ struct ControlSignals {
     bool memWrite = false;
     bool memToReg = false; 
     bool branch   = false;
+    bool aluSrcImm = false;
 
     ALUOp aluOp = ALUOp::NONE;
 

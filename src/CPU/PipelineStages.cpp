@@ -63,6 +63,7 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool& 
         case Opcode::ADDI:
             c.regWrite = true;
             c.aluOp = ALUOp::ADD;
+            c.aluSrcImm = true;
             c.destReg = di.rt;
             break;
         case Opcode::LW:
@@ -70,11 +71,13 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool& 
             c.memRead = true;
             c.memToReg = true;
             c.aluOp = ALUOp::ADD;
+            c.aluSrcImm = true;
             c.destReg = di.rt;
             break;
         case Opcode::SW:
             c.memWrite = true;
             c.aluOp = ALUOp::ADD;
+            c.aluSrcImm = true;
             break;
         case Opcode::BEQ:
             c.branch = true;
@@ -89,7 +92,6 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool& 
 
     stall = false;
 }
-
 void EXStage::evaluate(PipelineRegisters& pipe, int& pc_next) {
     const ID_EX& in = pipe.id_ex;
 
@@ -98,36 +100,60 @@ void EXStage::evaluate(PipelineRegisters& pipe, int& pc_next) {
         return;
     }
 
+    // === Forwarding ===
+    ForwardingDecision fwd =
+        forwarding.resolve(in, pipe.ex_mem, pipe.mem_wb);
+
+    int valA = in.val_rs;
+    int valB = in.val_rt;
+
+    if (fwd.A == ForwardSel::FROM_EX_MEM)
+        valA = pipe.ex_mem.alu_result;
+    else if (fwd.A == ForwardSel::FROM_MEM_WB)
+        valA = pipe.mem_wb.ctrl.memToReg
+                 ? pipe.mem_wb.mem_data
+                 : pipe.mem_wb.alu_result;
+
+    if (fwd.B == ForwardSel::FROM_EX_MEM)
+        valB = pipe.ex_mem.alu_result;
+    else if (fwd.B == ForwardSel::FROM_MEM_WB)
+        valB = pipe.mem_wb.ctrl.memToReg
+                 ? pipe.mem_wb.mem_data
+                 : pipe.mem_wb.alu_result;
+
     EX_MEM& out = pipe.ex_mem_next;
     out.ctrl = in.ctrl;
 
+    // === ALU ===
     int alu = 0;
     switch (in.ctrl.aluOp) {
         case ALUOp::ADD:
-            if (in.imm != 0 && in.rs >= 0) alu = in.val_rs + in.imm;
-            else alu = in.val_rs + in.val_rt;
+            alu = valA + (in.ctrl.aluSrcImm ? in.imm : valB);
             break;
         case ALUOp::SUB:
-            alu = in.val_rs - in.val_rt;
+            alu = valA - valB;
             break;
-        case ALUOp::NONE:
         default:
             alu = 0;
-            break;
     }
 
     out.alu_result = alu;
-    out.val_rt = in.val_rt;
+
+    // IMPORTANT: store forwarded value, not stale one
+    out.val_rt = valB;
+
     out.zero = (alu == 0);
     out.branchTarget = in.pc + in.imm;
     out.valid = true;
 
+    // Branch handling
     if (in.ctrl.branch && out.zero) {
         pc_next = out.branchTarget;
         pipe.if_id_next.valid = false;
         pipe.id_ex_next.valid = false;
     }
 }
+
 
 void MEMStage::evaluate(PipelineRegisters& pipe, Memory& mem) {
     const EX_MEM& in = pipe.ex_mem;

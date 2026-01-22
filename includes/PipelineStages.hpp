@@ -3,6 +3,7 @@
 #include "RegisterFile.hpp"
 #include "Instructions.hpp"
 #include "Memory.hpp"
+#include "ForwardingUnit.hpp"
 #include <vector>
 
 class IFStage {
@@ -21,8 +22,15 @@ public:
 
 class EXStage {
 public:
-    void evaluate(PipelineRegisters& pipe, int& pc_next);
+    void evaluate(
+        PipelineRegisters& pipe,
+        int& pc_next
+    );
+
+private:
+    ForwardingUnit forwarding;
 };
+
 
 class MEMStage {
 public:
