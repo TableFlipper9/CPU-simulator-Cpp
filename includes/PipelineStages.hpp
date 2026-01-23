@@ -1,6 +1,6 @@
 #pragma once
 #include "PipelineRegisters.hpp"
-#include "RegisterFile.hpp"
+#include "Registerfile.hpp"
 #include "Instructions.hpp"
 #include "Memory.hpp"
 #include "ForwardingUnit.hpp"

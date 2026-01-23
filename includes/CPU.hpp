@@ -2,7 +2,7 @@
 #include <vector>
 #include "PipelineRegisters.hpp"
 #include "PipelineStages.hpp"
-#include "RegisterFile.hpp"
+#include "Registerfile.hpp"
 #include "Memory.hpp"
 #include "Instructions.hpp"
 #include "HazardUnit.hpp"

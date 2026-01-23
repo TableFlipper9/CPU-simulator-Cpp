@@ -91,7 +91,7 @@ std::vector<Instruction> ProgramLoader::loadFromFile(const std::string& path) {
 
         if (mnem == "nop") {
             ins.op = Opcode::NOP;
-        } else if (mnem == "add" || mnem == "sub" || mnem == "and" || mnem == "or" || mnem == "slt") {
+        } else if (mnem == "add" || mnem == "sub" || mnem == "and" || mnem == "or" || mnem == "xor" || mnem == "slt") {
             std::string rd, rs, rt;
             if (!(iss >> rd >> rs >> rt)) {
                 throw std::runtime_error("Line " + std::to_string(lineNo) + ": expected rd rs rt");
@@ -103,6 +103,7 @@ std::vector<Instruction> ProgramLoader::loadFromFile(const std::string& path) {
             else if (mnem == "sub") ins.op = Opcode::SUB;
             else if (mnem == "and") ins.op = Opcode::AND;
             else if (mnem == "or") ins.op = Opcode::OR;
+            else if (mnem == "xor") ins.op = Opcode::XOR;
             else ins.op = Opcode::SLT;
         } else if (mnem == "jr") {
             std::string rs;

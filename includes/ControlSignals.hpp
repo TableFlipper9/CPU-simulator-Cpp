@@ -6,6 +6,7 @@ enum class ALUOp {
     SUB,
     AND,
     OR,
+    XOR,
     SLT
 };
 

@@ -89,6 +89,11 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool s
             c.aluOp = ALUOp::OR;
             c.destReg = di.rd;
             break;
+        case Opcode::XOR:
+            c.regWrite = true;
+            c.aluOp = ALUOp::XOR;
+            c.destReg = di.rd;
+            break;
         case Opcode::SLT:
             c.regWrite = true;
             c.aluOp = ALUOp::SLT;
@@ -223,6 +228,9 @@ void EXStage::evaluate(PipelineRegisters& pipe, int& pc_next) {
             break;
         case ALUOp::OR:
             alu = valA | (in.ctrl.aluSrcImm ? in.imm : valB);
+            break;
+        case ALUOp::XOR:
+            alu = valA ^ (in.ctrl.aluSrcImm ? in.imm : valB);
             break;
         case ALUOp::SLT:
             alu = (valA < valB) ? 1 : 0;

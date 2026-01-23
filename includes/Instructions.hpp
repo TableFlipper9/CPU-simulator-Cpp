@@ -9,6 +9,7 @@ enum class Opcode {
     SUB,
     AND,
     OR,
+    XOR,
     SLT,
     JR,
 

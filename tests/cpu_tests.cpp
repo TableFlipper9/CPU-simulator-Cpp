@@ -60,6 +60,28 @@ static void test_alu_forwarding() {
     EXPECT_EQ(cpu.getReg(4), 7);
 }
 
+static void test_xor_rtype_and_forwarding() {
+    std::cout << "[TEST] xor_rtype_and_forwarding\n";
+    CPU cpu;
+
+    // r1 = 0b101010 (42)
+    // r2 = 0b110011 (51)
+    // r3 = r1 ^ r2 = 0b011001 (25)
+    // r4 = r3 ^ r1 = 0b110011 (51)  (checks EX forwarding)
+    std::vector<Instruction> p = {
+        I(Opcode::ADDI, 0, 1, 0, 42, 0, "addi $1,$0,42"),
+        I(Opcode::ADDI, 0, 2, 0, 51, 0, "addi $2,$0,51"),
+        I(Opcode::XOR,  1, 2, 3, 0,  0, "xor  $3,$1,$2"),
+        I(Opcode::XOR,  3, 1, 4, 0,  0, "xor  $4,$3,$1"),
+    };
+    runProgramAndDrain(cpu, p);
+
+    EXPECT_EQ(cpu.getReg(1), 42);
+    EXPECT_EQ(cpu.getReg(2), 51);
+    EXPECT_EQ(cpu.getReg(3), 25);
+    EXPECT_EQ(cpu.getReg(4), 51);
+}
+
 static void test_load_use_stall_and_mem_to_ex_forward() {
     std::cout << "[TEST] load_use_stall_and_mem_to_ex_forward\n";
     CPU cpu;
@@ -229,6 +251,7 @@ static void test_zero_register_immutable() {
 
 int main() {
     test_alu_forwarding();
+    test_xor_rtype_and_forwarding();
     test_load_use_stall_and_mem_to_ex_forward();
     test_store_data_forwarding();
     test_branch_taken_flush();
