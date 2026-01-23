@@ -9,7 +9,7 @@ option(BUILD_TESTS "Build CPU core tests" ON)
 
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")
 if (BUILD_GUI_APP)
-    # SFML / ImGui are only needed for the GUI app.
+    # SFML / ImGui are only needed for the GUI
     find_package(SFML 3 REQUIRED COMPONENTS System Window Graphics)
     add_subdirectory(external/imgui-sfml)
 endif()

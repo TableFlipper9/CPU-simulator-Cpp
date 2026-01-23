@@ -7,14 +7,6 @@
 #include <optional>
 
 static std::vector<Instruction> defaultDemoProgram() {
-    // Demo:
-    // $2 = 20
-    // $3 = 5
-    // $1 = $2 + $3 = 25
-    // $4 = $1 + 10 = 35
-    // mem[0] = $4
-    // $5 = mem[0] = 35
-    // $6 = $5 - $4 = 0
     return {
         {Opcode::ADDI, 0, 2, 0, 20, 0, "addi $2, $0, 20"},
         {Opcode::ADDI, 0, 3, 0, 5,  0, "addi $3, $0, 5"},
@@ -31,8 +23,6 @@ int main(int argc, char** argv) {
 
     std::vector<Instruction> program;
 
-    // Resolve a program path robustly on multi-config builds (e.g. build/Debug/...) where
-    // the current working directory may not be the project root.
     auto firstExisting = [](const std::vector<std::filesystem::path>& candidates)
             -> std::optional<std::filesystem::path> {
         for (const auto& p : candidates) {
@@ -51,7 +41,6 @@ int main(int argc, char** argv) {
         const std::filesystem::path exePath = (argc >= 1) ? std::filesystem::path(argv[0]) : std::filesystem::path();
         const std::filesystem::path exeDir  = exePath.has_parent_path() ? exePath.parent_path() : std::filesystem::current_path();
 
-        // Try: CWD, alongside the exe, and typical build folder parents.
         resolved = firstExisting({
             std::filesystem::path("program.txt"),
             exeDir / "program.txt",
@@ -78,10 +67,9 @@ int main(int argc, char** argv) {
     }
 
     cpu.loadProgram(program);
-    // Start from a clean architectural state for the interactive simulator.
+    // Start from a clean architectural
     cpu.reset(true);
 
-    // GUI is the "system" driver now: it controls stepping/running.
     App ui(cpu);
     ui.run();
 

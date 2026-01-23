@@ -7,11 +7,9 @@ HazardResult HazardUnit::detect(const IF_ID& if_id, const ID_EX& id_ex) {
     if (!if_id.valid || !id_ex.valid)
         return res;
 
-    // Helper: does the IF/ID instruction actually *read* rt as a source?
-    // (Many I-type instructions use rt as a destination, not a source.)
     auto readsRt = [&](const Instruction& ins) -> bool {
         switch (ins.op) {
-            // R-type ALU ops read rs and rt (destination is rd)
+            // R-type ALU ops read rs and rt
             case Opcode::ADD:
             case Opcode::SUB:
             case Opcode::AND:
@@ -35,15 +33,13 @@ HazardResult HazardUnit::detect(const IF_ID& if_id, const ID_EX& id_ex) {
         }
     };
 
-    // Classic load-use hazard:
-    //   ID/EX is a load and the following instruction in IF/ID needs the loaded register.
-    // With forwarding, *only* this case requires a stall in a 5-stage pipeline.
+    // Classic load-use hazard
     if (id_ex.ctrl.memRead) {
         const int loadReg = id_ex.ctrl.destReg;  // destination of LW
         const int rs = if_id.rawInstr.rs;
         const int rt = if_id.rawInstr.rt;
 
-        const bool usesRs = (rs != 0); // rs==0 is still a read but never hazards
+        const bool usesRs = (rs != 0); // rs==0 is still a read but never hazzards
         const bool usesRt = readsRt(if_id.rawInstr);
 
         if (loadReg != 0 && ((usesRs && loadReg == rs) || (usesRt && loadReg == rt))) {

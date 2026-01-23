@@ -29,7 +29,7 @@ void IFStage::evaluate(
 
 void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool stall) {
     if (stall) {
-        // Insert bubble (NOP) into ID/EX; IF/ID is held by IF stage.
+        // Insert NOPinto ID/EX, IF/ID is held by IF stage.
         pipe.id_ex_next = ID_EX{};
         pipe.id_ex_next.valid = false;
         return;
@@ -44,7 +44,7 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool s
     const Instruction& di = in.rawInstr;
     ID_EX& out = pipe.id_ex_next;
 
-    // Keep the decoded instruction for UI/debugging.
+    // Keep the decoded instruction for debugg
     out.rawInstr = di;
 
     out.pc = in.pc;
@@ -53,10 +53,6 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool s
     out.imm = di.imm;
     out.addr = di.addr;
 
-	// Register file timing model note:
-	// In real MIPS, WB writes can be visible to ID reads in the same cycle
-	// (write-first). Our simulator commits at end-of-tick, so we model that
-	// behavior explicitly by allowing MEM/WB to bypass into ID.
 	auto readWithWbBypass = [&](int idx) -> int {
 	    int v = regs.read(idx);
 	    if (pipe.mem_wb.valid && pipe.mem_wb.ctrl.regWrite && pipe.mem_wb.ctrl.destReg == idx && idx != 0) {
@@ -72,7 +68,7 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool s
     c.destReg = -1;
 
     switch (di.op) {
-        // === R-type ===
+        // R-type 
         case Opcode::ADD:
             c.regWrite = true;
             c.aluOp = ALUOp::ADD;
@@ -102,7 +98,7 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool s
             c.jump = JumpType::JR;
             break;
 
-        // === I-type ===
+        //I-type
         case Opcode::ADDI:
             c.regWrite = true;
             c.aluOp = ALUOp::ADD;
@@ -143,7 +139,7 @@ void IDStage::evaluate(PipelineRegisters& pipe, const RegisterFile& regs, bool s
             c.aluOp = ALUOp::SUB; // compare rs - rt
             break;
 
-        // === J-type ===
+        //J-type
         case Opcode::J:
             c.jump = JumpType::J;
             break;
@@ -169,17 +165,14 @@ void EXStage::evaluate(PipelineRegisters& pipe, int& pc_next) {
         return;
     }
 
-    // === Forwarding ===
+    //Forwarding
     ForwardingDecision fwd =
         forwarding.resolve(in, pipe.ex_mem, pipe.mem_wb);
 
     int valA = in.val_rs;
     int valB = in.val_rt;
 
-    // MEM->EX forwarding for loads:
-    // The instruction currently in EX/MEM may be a load. Its data becomes available
-    // in MEM this cycle, which we model by running MEMStage before EXStage and
-    // reading pipe.mem_wb_next.mem_data here.
+    // MEM->EX forwarding for loads
     const bool memStageLoadAvail =
         pipe.ex_mem.valid && pipe.ex_mem.ctrl.memRead &&
         pipe.ex_mem.ctrl.regWrite &&
@@ -194,7 +187,7 @@ void EXStage::evaluate(PipelineRegisters& pipe, int& pc_next) {
                  ? pipe.mem_wb.mem_data
                  : pipe.mem_wb.alu_result;
 
-    // Override with MEM-stage load forwarding if applicable.
+    // Override with MEM-stage load forwarding if applicable
     if (memStageLoadAvail && pipe.ex_mem.ctrl.destReg == in.rs) {
         valA = memStageLoadVal;
     }
@@ -206,17 +199,17 @@ void EXStage::evaluate(PipelineRegisters& pipe, int& pc_next) {
                  ? pipe.mem_wb.mem_data
                  : pipe.mem_wb.alu_result;
 
-    // Override with MEM-stage load forwarding if applicable.
+    // Override with MEM-stage load forwarding if applicable
     if (memStageLoadAvail && pipe.ex_mem.ctrl.destReg == in.rt) {
         valB = memStageLoadVal;
     }
 
     EX_MEM& out = pipe.ex_mem_next;
-    // Keep instruction for UI/debugging.
+    // Keep instruction for debugg
     out.rawInstr = in.rawInstr;
     out.ctrl = in.ctrl;
 
-    // === ALU ===
+    // ALU 
     int alu = 0;
     switch (in.ctrl.aluOp) {
         case ALUOp::ADD:
@@ -247,9 +240,8 @@ void EXStage::evaluate(PipelineRegisters& pipe, int& pc_next) {
     out.branchTarget = in.pc + 1 + in.imm;
     out.valid = true;
 
-    // === Control flow handling (basic) ===
-// We resolve branches/jumps in EX. This means IF and ID have already speculatively
-// fetched/decoded the next sequential instruction, so we flush them on redirect.
+    // Control flow handling (basic)
+// We resolve branches/jumps in EX.
 bool takeBranch = false;
 if (in.ctrl.branch == BranchType::BEQ) {
     takeBranch = out.zero;
@@ -269,14 +261,12 @@ if (in.ctrl.jump == JumpType::J || in.ctrl.jump == JumpType::JAL) {
     pipe.if_id_next.valid = false;
     pipe.id_ex_next.valid = false;
 
-    // For JAL, write return address (pc+1) into $ra via the normal WB path.
-    // We carry it in alu_result.
     if (in.ctrl.jump == JumpType::JAL) {
         out.alu_result = in.pc + 1;
     }
 }
 
-// JR: jump to address stored in rs (valA)
+// JR
 if (in.ctrl.jump == JumpType::JR) {
     pc_next = valA;
     pipe.if_id_next.valid = false;
@@ -294,7 +284,7 @@ void MEMStage::evaluate(PipelineRegisters& pipe, Memory& mem) {
     }
 
     MEM_WB& out = pipe.mem_wb_next;
-    // Keep instruction for UI/debugging.
+    // keep instruction for debug
     out.rawInstr = in.rawInstr;
     out.ctrl = in.ctrl;
     out.alu_result = in.alu_result;

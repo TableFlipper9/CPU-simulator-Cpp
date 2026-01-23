@@ -39,7 +39,6 @@ static void runCPU(CPU& cpu, int max_cycles) {
 
 static void runProgramAndDrain(CPU& cpu, const std::vector<Instruction>& prog) {
     cpu.loadProgram(prog);
-    // Conservative upper bound: pipeline depth + some slack for branches/jumps.
     const int max_cycles = static_cast<int>(prog.size()) + 20;
     runCPU(cpu, max_cycles);
 }
@@ -121,7 +120,6 @@ static void test_branch_not_taken_with_forward_to_branch() {
     std::cout << "[TEST] branch_not_taken_with_forward_to_branch\n";
     CPU cpu;
 
-    // r3 is produced immediately before branch uses it.
     std::vector<Instruction> p = {
         I(Opcode::ADDI, 0, 1, 0, 5, 0, "addi $1,$0,5"),
         I(Opcode::ADDI, 0, 2, 0, 6, 0, "addi $2,$0,6"),
@@ -132,7 +130,7 @@ static void test_branch_not_taken_with_forward_to_branch() {
     };
     runProgramAndDrain(cpu, p);
 
-    // Branch should not skip the first write to r4.
+    // Branch should not skip the first write to r4
     EXPECT_EQ(cpu.getReg(3), 1);
     EXPECT_EQ(cpu.getReg(4), 22);
 }

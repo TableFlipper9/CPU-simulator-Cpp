@@ -11,9 +11,7 @@ CPU::CPU()
 
 void CPU::loadProgram(const std::vector<Instruction>& program) {
     instrMem = program;
-    // Load a program and reset the control flow/pipeline.
-    // NOTE: We intentionally do NOT clear registers/memory here so tests (and later
-    // GUI workflows) can pre-initialize state before loading.
+    // Load a program and reset the control flow/pipeline
     pc = 0;
     clock = 0;
 
@@ -53,19 +51,16 @@ void CPU::tick() {
     }
     int pc_next = pc;
 
-    // Detect hazards based on the *current* pipeline state.
+    // Detect hazards based on th pipeline state.
     const HazardResult hz = hazardUnit.detect(pipe.if_id, pipe.id_ex);
     const bool stall = hz.stall;
 
     pipe.clearNext();
 
-    // IF/ID are the only stages that stall on a load-use hazard.
+    // IF/ID are the only stages that stall on a load-use hazard
     ifStage.evaluate(pipe, instrMem, pc, pc_next, stall);
     idStage.evaluate(pipe, regs, stall);
 
-    // Model same-cycle forwarding of load data from MEM->EX by evaluating MEM
-    // before EX. All stages still read the *current* pipeline registers and
-    // write only to *_next.
     memStage.evaluate(pipe, mem);
     exStage.evaluate(pipe, pc_next);
     wbStage.evaluate(pipe, regs);
@@ -128,7 +123,7 @@ int CPU::getMemWord(int addr) const {
 }
 
 void CPU::setMemWord(int addr, int value) {
-    // For tests/initialization we want an immediate, deterministic effect.
+    // For tests/initialization we want an immediate result
     mem.writeNext(addr, value);
     mem.commit();
 }

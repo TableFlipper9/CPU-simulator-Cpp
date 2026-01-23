@@ -28,7 +28,7 @@ static int parseReg(const std::string& tok, int lineNo) {
     std::string s = stripPunct(tok);
     if (!s.empty() && s[0] == '$') s.erase(0,1);
     if (s.empty()) throw std::runtime_error("Line " + std::to_string(lineNo) + ": missing register");
-    // Allow names like zero? not for now.
+    // Allow names like 
     for(char c: s) {
         if (!std::isdigit((unsigned char)c) && c!='-' ) {
             throw std::runtime_error("Line " + std::to_string(lineNo) + ": invalid register token: " + tok);
@@ -132,9 +132,7 @@ std::vector<Instruction> ProgramLoader::loadFromFile(const std::string& path) {
             if (!(iss >> rs >> rt >> target)) throw std::runtime_error("Line " + std::to_string(lineNo) + ": expected rs rt targetIndex");
             ins.rs = parseReg(rs, lineNo);
             ins.rt = parseReg(rt, lineNo);
-            ins.imm = parseImm(target, lineNo); // we store absolute target in imm? no; instruction uses imm for offset; but our pipeline expects imm is offset.
-            // We'll interpret provided target as absolute instruction index and convert to relative offset during construction:
-            // offset = target - (pc+1). The loader doesn't know pc yet unless we do second pass; do it now using current program size as pc.
+            ins.imm = parseImm(target, lineNo);
             int pc = (int)program.size();
             int targetPc = ins.imm;
             ins.imm = targetPc - (pc + 1);

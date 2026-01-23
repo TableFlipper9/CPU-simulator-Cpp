@@ -6,7 +6,6 @@
 
 static sf::Texture gPipelineTexture;
 
-// ---- Fixed categorical palette (repeats) ----
 static const ImU32 PIPELINE_COLORS[] = {
     IM_COL32(231,  76,  60, 255), // red
     IM_COL32( 46, 204, 113, 255), // green
@@ -19,8 +18,6 @@ static const ImU32 PIPELINE_COLORS[] = {
 };
 static const int PIPELINE_COLOR_COUNT = (int)(sizeof(PIPELINE_COLORS) / sizeof(PIPELINE_COLORS[0]));
 
-// ---- NEW: persistent mapping so colors stay stable across frames ----
-// Keyed by raw_text for now (minimal change). If you can key by PC/UID later, even better.
 static std::unordered_map<std::string, ImU32> gInstrColorCache;
 static int gNextColorIndex = 0;
 
@@ -130,7 +127,7 @@ void App::run()
                 } else if (key->scancode == sf::Keyboard::Scancode::R) {
                     cpu.reset(true);
                     executedHistory.clear();
-                    ResetColorCache(); // NEW: reset palette assignments too
+                    ResetColorCache(); // reset palette assignments
                 }
             }
         }
@@ -158,7 +155,7 @@ void App::run()
         float cellW = workSize.x / 10.0f;
         float cellH = workSize.y / 10.0f;
 
-        // -------------------- PIPELINE --------------------
+        //PIPELINE
         ImGui::SetNextWindowPos({workPos.x + cellW * 0, workPos.y + cellH * 0});
         ImGui::SetNextWindowSize({cellW * 7, cellH * 7});
 
@@ -172,8 +169,6 @@ void App::run()
 
         const auto& pipe = cpu.pipeline();
 
-        // Colors for instructions currently in the pipeline (stable across frames).
-        // We still only *display* color in Executed list if currently in pipeline.
         std::unordered_map<std::string, ImU32> liveInstrColors;
         auto addLive = [&](const Instruction& instr, bool valid) {
             if (!valid || instr.op == Opcode::NOP) return;
@@ -186,7 +181,6 @@ void App::run()
 
         ImGui::Separator();
 
-        // Pipeline diagram fills remaining space; overlays draw over pipeline registers.
         {
             ImVec2 avail = ImGui::GetContentRegionAvail();
             sf::Vector2f size(avail.x, avail.y);
@@ -198,7 +192,6 @@ void App::run()
 
             struct Slot { const char* name; float x0, y0, x1, y1; const Instruction* instr; bool valid; };
 
-            // 30% smaller vertically
             const float baseY0 = 70.0f / 367.0f;
             const float baseY1 = 305.0f / 367.0f;
             const float yCenter = (baseY0 + baseY1) * 0.5f;
@@ -235,10 +228,8 @@ void App::run()
                 dl->AddRectFilled(p0, p1, fill, rounding);
                 dl->AddRect(p0, p1, border, rounding, 0, 2.0f);
 
-                // Instruction label ABOVE the overlay.
                 const std::string fullText = isLive ? s.instr->raw_text : std::string("<empty>");
 
-                // Allow label wider than bar but keep inside image.
                 const float maxLabelW = imgSize.x - pad * 2.0f;
                 const std::string clipped = TruncateToWidth(fullText, maxLabelW);
 
@@ -263,7 +254,7 @@ void App::run()
 
         ImGui::End();
 
-        // -------------------- INSTRUCTIONS (right) --------------------
+        //INSTRUCTIONS
         ImGui::SetNextWindowPos({workPos.x + cellW * 7, workPos.y + cellH * 0});
         ImGui::SetNextWindowSize({cellW * 3, cellH * 6});
 
@@ -314,7 +305,7 @@ void App::run()
         ImGui::PopTextWrapPos();
         ImGui::End();
 
-        // -------------------- REGISTERS (bottom-left) --------------------
+        // REGISTERS
         ImGui::SetNextWindowPos({workPos.x + cellW * 0, workPos.y + cellH * 7});
         ImGui::SetNextWindowSize({cellW * 7, cellH * 3});
 
@@ -333,7 +324,7 @@ void App::run()
         ImGui::EndChild();
         ImGui::End();
 
-        // -------------------- MEMORY (bottom-right) --------------------
+        //MEMORY 
         ImGui::SetNextWindowPos({workPos.x + cellW * 7, workPos.y + cellH * 6});
         ImGui::SetNextWindowSize({cellW * 3, cellH * 4});
 

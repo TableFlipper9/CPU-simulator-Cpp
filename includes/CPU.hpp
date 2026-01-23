@@ -13,13 +13,11 @@ public:
 
     void loadProgram(const std::vector<Instruction>& program);
 
-    // Reset architectural state (PC, clock, pipeline, regs, mem) while keeping the
-    // currently loaded program intact.
+    // Reset state while keeping the currently loaded program
     void reset(bool clearMemory = true);
 
     void tick();
 
-    // True when there are no more instructions to fetch and the pipeline is empty.
     bool isHalted() const;
 
     const PipelineRegisters& pipeline() const { return pipe; }
@@ -30,8 +28,6 @@ public:
     void dumpRegisters() const;
     void dumpPipeline() const;
 
-    // ---- Testing / inspection helpers ----
-    // These are intentionally lightweight and keep the core design intact.
     int getReg(int idx) const;
     int getMemWord(int addr) const;
     void setMemWord(int addr, int value);
